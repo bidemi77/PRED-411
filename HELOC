@@ -1,0 +1,57 @@
+%let PATH = C: \Dropbox\N_NORTHWESTERN\Z_NWU411\U2LOGISTIC\HELOC\DATA;
+
+libname LR "&PATH.";
+
+%let INFILE = LR.HELOC;
+%let TEMPFILE= LR.JOE;
+
+proc contents data=&INFILE.;
+run;
+
+proc print data=&INFILE.(obs=10);
+run;
+
+data &TEMPFILE.;
+set &INFILE.;
+
+IMP_MORTDUE = MORTDUE;
+set &INFILE.;
+
+IMP_MORTDUE = MORTDUE;
+M_MORDUE = 0;
+if missing(IMP_MORTDUE) then do;
+   IMP_MORTDUE = 65205;
+   M_MORTDUE = 1;
+end;
+
+IMP_VALUE = VALUE;
+M_VALUE = 0;
+if missing(IMP_VALUE) then do; 
+     IMP_VALUE = 89430;   
+    M_VALUE = 1;
+end;
+
+IMP_YOJ = YOJ;
+if missing (IMP_YOJ) then IMP_YOJ = 7;
+
+IMP_DEROG = DEROG;
+if missing(IMP_DEROG) then IMP_DEROG=0;
+
+IMP_DELINQ = DELINQ;
+if missing IMP_DELINQ)
+
+IMP_DEROG = DEROG;
+if missing (IMP_DEROG) then IMP_DEROG=0;
+
+IMP_CLAGE =CLAGE;
+if missing(IMP_CLAGE) then IMP_CLAGE=172;
+
+IMP_NNQ = NNQ;
+if missing (IMP_NNQ) then IMP_NNQ =1;
+
+IMP_DEBTINC =DEBTINC;
+if missing (IMP_DEBTINC) then IMP_DEBTINC = 35;
+
+IMP_CLNQ = CLNQ;
+if missing(IMP_CLNQ) = CLNQ =20;
+run;
