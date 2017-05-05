@@ -24,8 +24,6 @@ if missing(IMP_MORTDUE) then do;
    M_MORTDUE = 1;
 end;
 
-CAP_MORTDUE 
-
 IMP_VALUE = VALUE;
 M_VALUE = 0;
 if missing(IMP_VALUE) then do; 
@@ -39,11 +37,9 @@ if missing (IMP_YOJ) then IMP_YOJ = 7;
 IMP_DEROG = DEROG;
 if missing(IMP_DEROG) then IMP_DEROG=0;
 
-IMP_DELINQ = DELINQ;
-if missing IMP_DELINQ)
 
-IMP_DEROG = DEROG;
-if missing (IMP_DEROG) then IMP_DEROG=0;
+IMP_DELINQ = DELINQ;
+if missing (IMP_DELINQ) then IMP_DELINQ=0;
 
 IMP_CLAGE =CLAGE;
 if missing(IMP_CLAGE) then IMP_CLAGE=172;
