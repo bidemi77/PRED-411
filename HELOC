@@ -24,6 +24,8 @@ if missing(IMP_MORTDUE) then do;
    M_MORTDUE = 1;
 end;
 
+CAP_MORTDUE 
+
 IMP_VALUE = VALUE;
 M_VALUE = 0;
 if missing(IMP_VALUE) then do; 
@@ -55,3 +57,24 @@ if missing (IMP_DEBTINC) then IMP_DEBTINC = 35;
 IMP_CLNQ = CLNQ;
 if missing(IMP_CLNQ) = CLNQ =20;
 run;
+
+IMP_JOB = JOB;
+if missing(IMP_JOB) then IMP_JOB="Other";
+
+IMP_REASON = REASON;
+if missing(IMP_REASON) then IMP_REASON = "None";
+
+TRAING_FLAG = ranuni(1) > 0.2;
+
+run;
+
+data TRAIN;
+set &TEMPFILE.;
+if TRAIN_FLAG=1;
+run;
+
+data TEST;
+set &TEMPFILE;
+if TRAIN_FLAG=0;
+run;
+
