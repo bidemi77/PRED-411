@@ -1,0 +1,59 @@
+%let PATH = /folders/myfolders/folders/myshortcuts/PRED411/UNIT01/HW;%let NAME = HW;%let LIB = &NAME..;
+libname &NAME."&PATH";
+%let INFILE = &LIB.HELOC;
+proc print data=&INFILE.(obs=30);run;
+proc contents data=&INfILE;run;
+proc means data=&INFILE. MEAN MEDIAN N NMISS p1 p5 p99;
+run;***********************************************************************;
+
+* Calculating Correlation Matrix Between TARGET_WINS AND ALL VARIABLES;***********************************************************************;
+proc corr data=&INFILE. OUTS=SPEARMAN  NOSIMPLE plots=ALL;var TARGET_WINS;with TEAM_BASERUN_CS TEAM_BASERUN_SB TEAM_BATTING_2B TEAM_BATTING_3B TEAM_BATTING_BB TEAM_BATTING_H TEAM_BATTING_HBPTEAM_BATTING_HR TEAM_BATTING_SO TEAM_FIELDING_DP TEAM_FIELDING_ETEAM_PITCHING_BB TEAM_PITCHING_H TEAM_PITCHING_HR TEAM_PITCHING_SO;run;
+proc corr data=&INFILE OUTS=SPEARMAN NOSIMPLE NOMISS plots=MATRIX;var TEAM_BATTING_H;with TARGET_WINS;run;
+proc corr data=&INFILE OUTS=SPEARMAN NOSIMPLE NOMISS plots=ALL;var TEAM_BATTING_2B;with TARGET_WINS;run;
+proc corr data=&INFILE OUTS=SPEARMAN NOSIMPLE NOMISS plots=ALL;var TEAM_BATTING_BB;with TARGET_WINS;run;
+proc corr data=&INFILE OUTS=SPEARMAN NOSIMPLE NOMISS plots=ALL;var TEAM_BASERUN_SB;with TARGET_WINS;run;
+proc corr data=&INFILE OUTS=SPEARMAN NOSIMPLE NOMISS plots=ALL;var TEAM_BASERUN_SB;with TEAM_BASERUN_CS;run;*******************************************************************************;* Using Proc Univariate To Locate the Outliers In the MOneyball Dataset;*******************************************************************************;proc univariate DATA=&INFILE. plot;var TEAM_BASERUN_SB;run;
+proc univariate DATA=&INFILE. plot;var TEAM_BATTING_2B;run;
+proc univariate DATA=&INFILE. plot;var TEAM_BATTING_BB;run;
+proc univariate DATA=&INFILE. plot;var TEAM_FIELDING_DP;run;
+proc univariate DATA=&INFILE. plot;var TEAM_FIELDING_E;run;
+proc univariate DATA=&INFILE. plot;var TEAM_PITCHING_H;run;
+proc univariate DATA=&INFILE. plot;var TEAM_PITCHING_SO;run;
+**************************************************************************;*
+Fix the Mixing Values in the Predictor Variables;**************************************************************************;
+data TEMPFILE;set &INFILE;run;
+proc print data=TEMPFILE(obs=10);run;
+data TEMPFILE;set &INFILE;drop TEAM_BATTING_HBP;if TEAM_BASERUN_CS = . then TEAM_BASERUN_CS = 49;if TEAM_BASERUN_SB = . then TEAM_BASERUN_SB=101;if TEAM_BATTING_SO = . then TEAM_BATTING_SO=813.5;if TEAM_PITCHING_SO = . then TEAM_PITCHING_SO=813.5;if TEAM_FIELDING_DP = . then TEAM_FIELDING_DP=149;
+CAP_TEAM_FIELDING_E = TEAM_FIELDING_E;CAP_TEAM_PITCHING_H = TEAM_PITCHING_H;CAP_TEAM_PITCHING_SO= TEAM_PITCHING_SO;
+
+if CAP_TEAM_FIELDING_E < 104 then CAP_TEAM_FIELDING_E=104;if CAP_TEAM_FIELDING_E > 1261 then CAP_TEAM_FIELDING_E=1261;
+if CAP_TEAM_PITCHING_H < 1361 then CAP_TEAM_PITCHING_H=1361;if CAP_TEAM_PITCHING_H > 7093 then CAP_TEAM_PITCHING_H =7093;
+
+if CAP_TEAM_PITCHING_SO < 420 then CAP_TEAM_PITCHING_SO=420;if CAP_TEAM_PITCHING_SO > 1474 then CAP_TEAM_PITCHING_SO=1474;
+run;
+CAP_TEAM_BASERUN_SB = TEAM_BASERUN_SB;CAP_TEAM_BATTING_2B = TEAM_BATTING_2B;CAP_TEAM_BATTING_BB = TEAM_BATTING_BB;
+if CAP_TEAM_BASERUN_SB < 35 then CAP_TEAM_BASERUN_SB=35;if CAP_TEAM_BASERUN_SB > 439 then CAP_TEAM_BASERUN_SB=439;
+if CAP_TEAM_BATTING_2B < 162 then CAP_TEAM_BATTING_2B=162;if CAP_TEAM_BATTING_2B > 343 then CAP_TEAM_BATTING_2B=343;
+if CAP_TEAM_BATTING_BB < 299 then CAP_TEAM_BATTING_BB=299;if CAP_TEAM_BATTING_BB > 792 then CAP_TEAM_BATTING_BB=792;
+***********************************************************************************;* Run Regression Analysis Using PROC REG;***********************************************************************************;
+***********************************************;*/ REGRESSION MODEL 1 WITH THREE CAP_VARIABLES;***********************************************;proc reg data= TEMPFILE;model TARGET_WINS=TEAM_BASERUN_CS TEAM_BASERUN_SB TEAM_BATTING_2BTEAM_BATTING_3B TEAM_BATTING_BB TEAM_BATTING_HTEAM_BATTING_HR TEAM_BATTING_SO TEAM_FIELDING_DP CAP_TEAM_FIELDING_E TEAM_PITCHING_BBCAP_TEAM_PITCHING_H TEAM_PITCHING_HR CAP_TEAM_PITCHING_SO  /selection=forward slstay=0.05 vif aic bic;run;
+proc reg data= TEMPFILE;model TARGET_WINS= TEAM_BASERUN_SBTEAM_BATTING_3B TEAM_BATTING_BB TEAM_BATTING_H CAP_TEAM_FIELDING_E TEAM_PITCHING_BBCAP_TEAM_PITCHING_H  / selection=forward slstay=0.05 aic bic vif;run;
+proc reg data= TEMPFILE;model TARGET_WINS= TEAM_BASERUN_SBTEAM_BATTING_3B TEAM_BATTING_BB TEAM_BATTING_H TEAM_PITCHING_BB / selection=forward slstay=0.05 vif aic bic;run;
+***************************;*/ REGRESSION MODEL 2***************************;
+proc reg data= TEMPFILE;model TARGET_WINS=TEAM_BASERUN_CS TEAM_BASERUN_SB TEAM_BATTING_2BTEAM_BATTING_3B TEAM_BATTING_BB TEAM_BATTING_HTEAM_BATTING_HR TEAM_BATTING_SO TEAM_FIELDING_DP CAP_TEAM_FIELDING_E TEAM_PITCHING_BBCAP_TEAM_PITCHING_H TEAM_PITCHING_HR C /selection=stepwise slentry=0.01 slstay=0.05 vif aic bic;run;
+*/ Remove TEAM_FIELDING_DP and CAP_TEAM_FIELDING_E;
+proc reg data = TEMPFILE;model TARGET_WINS = TEAM_BASERUN_SB TEAM_BATTING_3BTEAM_BATTING_BB TEAM_BATTING_H TEAM_PITCHING_HR/selection=stepwise slentry=0.01 slstay=0.05 vif;run;
+***************************************************************;*/ REGRESSION MODEL 3 WITH SIX CAP_VARIABLE ;***************************************************************;
+proc reg data= TEMPFILE;model TARGET_WINS=TEAM_BASERUN_CS TEAM_BASERUN_SB TEAM_BATTING_2BTEAM_BATTING_3B TEAM_BATTING_BB TEAM_BATTING_HTEAM_BATTING_HR TEAM_BATTING_SO TEAM_FIELDING_DP CAP_TEAM_FIELDING_E TEAM_PITCHING_BBCAP_TEAM_PITCHING_H TEAM_PITCHING_HR CAP_TEAM_PITCHING_SO CAP_TEAM_BATTING_2B CAP_TEAM_BATTING_BB /selection=stepwise slentry=0.01 slstay=0.05 vif aic bic;run;
+proc reg data= TEMPFILE;model TARGET_WINS=TEAM_BASERUN_CS TEAM_BASERUN_SB TEAM_BATTING_3B TEAM_BATTING_HTEAM_BATTING_HR TEAM_BATTING_SO TEAM_FIELDING_DP CAP_TEAM_FIELDING_E TEAM_PITCHING_BBCAP_TEAM_PITCHING_H TEAM_PITCHING_HR CAP_TEAM_PITCHING_SO   /selection=stepwise slentry=0.01 slstay=0.05 vif aic bic;run;
+proc reg data= TEMPFILE;model TARGET_WINS= TEAM_BATTING_3B TEAM_BATTING_H TEAM_BASERUN_SBTEAM_BATTING_HR  TEAM_PITCHING_BB   /selection=stepwise slentry=0.01 slstay=0.05 vif aic bic;run;
+**************************************************************************************;* DATA SCORE FILE;**************************************************************************************;%let INFILE2 =&LIB.MONEYBALL_TEST;
+DATA SCOREFILE;set &INFILE2;drop TEAM_BATTING_HBP;if TEAM_BASERUN_CS = . then TEAM_BASERUN_CS = 49;if TEAM_BASERUN_SB = . then TEAM_BASERUN_SB=101;if TEAM_BATTING_SO = . then TEAM_BATTING_SO=813;if TEAM_PITCHING_SO = . then TEAM_PITCHING_SO=813;if TEAM_FIELDING_DP = . then TEAM_FIELDING_DP=149;
+CAP_TEAM_FIELDING_E = TEAM_FIELDING_E;CAP_TEAM_PITCHING_H = TEAM_PITCHING_H;CAP_TEAM_PITCHING_SO= TEAM_PITCHING_SO;
+
+if CAP_TEAM_FIELDING_E < 104 then CAP_TEAM_FIELDING_E=104;if CAP_TEAM_FIELDING_E > 1261 then CAP_TEAM_FIELDING_E=1261;
+if CAP_TEAM_PITCHING_H < 1361 then CAP_TEAM_PITCHING_H=1361;if CAP_TEAM_PITCHING_H > 7093 then CAP_TEAM_PITCHING_H =7093;
+
+if CAP_TEAM_PITCHING_SO < 420 then CAP_TEAM_PITCHING_SO =420;if CAP_TEAM_PITCHING_SO > 1474 then CAP_TEAM_PITCHING_SO =1474;
+P_TARGET_WINS =+              2.77798+              0.02037 * TEAM_BASERUN_SB+              0.05591 * TEAM_BATTING_3B+              0.02760 * TEAM_BATTING_BB+              0.03683 * TEAM_BATTING_H+              0.04212 * TEAM_PITCHING_HR;P_TARGET_WINS = ROUND(P_TARGET_WINS,1);
+keep INDEX P_TARGET_WINS;run;          
