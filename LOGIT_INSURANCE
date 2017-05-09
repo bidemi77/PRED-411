@@ -1,0 +1,65 @@
+%let PATH = /folders/myfolders/folders/myshortcuts/PRED411/UNIT01/HW;
+%let NAME = HW;
+%let LIB = &NAME..;
+libname &NAME."&PATH";
+%let INFILE = &LIB.logit_insurance;
+
+proc print data=&INFILE.(obs=30);
+run;
+
+proc contents data=&INfILE;
+run;
+
+proc means data=&INFILE. MEAN MEDIAN N NMISS p1 p5 p99;
+run;
+
+proc freq data=&INFILE.;
+table _character_ / missing;
+run;
+
+*****************************************************************************;
+*/Data Exploration of Logit Insurance;
+*****************************************************************************;
+
+title "Histogram Output of INCOME";
+proc sgplot data=&INFILE.;
+histogram INCOME;
+run;
+
+title "Histogram Output of HOME_VAL";
+proc sgplot data=&INFILE.;
+histogram HOME_VAL;
+run;
+
+
+run;
+
+title "Histogram Output of BLUEBOOK";
+proc sgplot data=&INFILE.;
+histogram CAR_AGE;
+run;
+
+title "Histogram Output of BLUEBOOK";
+proc sgplot data=&INFILE.;
+histogram TRAVTIME;
+run;
+
+proc univariate DATA=&INFILE. plot;
+var INCOME;
+run;
+
+proc univariate DATA=&INFILE. plot;
+var HOME_VAL;
+run;
+
+proc univariate DATA=&INFILE. plot;
+var BLUEBOOK;
+run;
+
+proc univariate DATA=&INFILE. plot;
+var CAR_AGE;
+run;
+
+proc univariate DATA=&INFILE. plot;
+var TRAVTIME;
+run;
